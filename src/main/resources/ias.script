@@ -1,0 +1,2 @@
+INSERT INTO eu_job (job_id, session_id, algorithm_id, algorithm_pid, input_message_body, output_message_body, input_message_arrival_dt, output_message_created_dt, output_message_sended_flg)
+VALUES (1, 1, 1, 1111, 'sdfsdfsdf', null, now(), null, false);

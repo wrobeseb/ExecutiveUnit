@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:p="http://www.springframework.org/schema/p"
+	   xmlns:file="http://www.springframework.org/schema/integration/file"
+	   xmlns:int-ip="http://www.springframework.org/schema/integration/ip"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						   http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+						   http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+						   http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
+						   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						   http://www.springframework.org/schema/integration/file
+						   http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+   
+   <context:property-placeholder location="classpath:eu.properties, classpath:jdbc.properties, classpath:hibernate.properties"/>
+   
+   <context:component-scan base-package="pwr.tin.tip.sw.pd.eu.db.service.impl, pwr.tin.tip.sw.pd.eu.db.dao.impl"/>
+
+	<context:annotation-config/>
+	
+	<bean class="pwr.tin.tip.sw.pd.eu.context.conf.ApplicationConfig"/>
+
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref bean="hotdeployDirectoryListenerTrigger"/>
+				<ref bean="hotdeployAlgorithmDeployerTrigger"/>
+				<ref bean="jobPoolManagerTrigger"/>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="hotdeployDirectoryListenerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail">
+			<bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+				<property name="targetObject">
+					<bean class="pwr.tin.tip.sw.pd.eu.hotdeploy.HotDeployDirectoryListener">
+						<property name="hotdeployManager" ref="hotdeployManager"/>
+						<property name="messages" ref="messages"/>
+						<property name="hotdeployDirectory" value="file:${algorithm.hotdeploy.directory}"/>
+					</bean>
+				</property>
+				<property name="targetMethod" value="checkDir"/>
+				<property name="concurrent" value="false"/>
+			</bean>
+		</property>
+		<property name="startDelay" value="1000"/>
+		<property name="repeatInterval" value="1000"/>
+	</bean>
+	
+	<bean id="hotdeployAlgorithmDeployerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail">
+			<bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+				<property name="targetObject">
+					<bean class="pwr.tin.tip.sw.pd.eu.hotdeploy.HotDeployAlgorithmDeployer">
+						<property name="hotdeployManager" ref="hotdeployManager"/>
+						<property name="rootContainer" ref="rootContainer"/>
+					</bean>
+				</property>
+				<property name="targetMethod" value="checkIfRunningInstancesExists"/>
+				<property name="concurrent" value="false"/>
+			</bean>
+		</property>
+		<property name="startDelay" value="2000"/>
+		<property name="repeatInterval" value="1000"/>
+	</bean>
+	
+	<bean id="hotdeployManager" class="pwr.tin.tip.sw.pd.eu.hotdeploy.HotDeployManager">
+		<property name="rootContainer" ref="rootContainer"/>
+		<property name="messages" ref="messages"/>
+		<property name="jobProcessor" ref="jobProcessor"/>
+		<property name="runtimeDirectory" value="file:${algorithm.runtime.directory}"/>
+		<property name="backupDirectory" value="file:${algorithm.backup.directory}"/>
+	</bean>
+	
+	<bean id="rootContainer" class="pwr.tin.tip.sw.pd.eu.core.container.RootContainer" init-method="init"/>
+
+	 <bean id="algorithmsLoader" class="pwr.tin.tip.sw.pd.eu.init.AlgorithmsLoader" init-method="load">
+		<property name="algorithmService" ref="algorithmService"/>
+		<property name="rootContainer" ref="rootContainer"/>
+		<property name="runtimeDirectory" value="${algorithm.runtime.directory}"/>
+	</bean>
+
+	<bean id="jobPoolManager" class="pwr.tin.tip.sw.pd.eu.core.job.JobPoolManager">
+		<property name="messageContainer" ref="messageContainer"/>
+		<property name="taskExecutor" ref="taskExecutor"/>
+		<property name="jobProcessor" ref="jobProcessor"/>
+		<property name="rootContainer" ref="rootContainer"/>
+	</bean>
+	
+	<bean id="jobPoolManagerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="jobDetail">
+			<bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+				<property name="targetObject" ref="jobPoolManager"/>
+				<property name="targetMethod" value="checkIfQueueIsFull"/>
+				<property name="concurrent" value="false"/>
+			</bean>
+		</property>
+		<property name="startDelay" value="2000"/>
+		<property name="repeatInterval" value="1000"/>
+	</bean>
+
+	<bean id="jobProcessor" class="pwr.tin.tip.sw.pd.eu.core.job.JobProcessor">
+		<property name="rootContainer" ref="rootContainer"/>
+		<property name="messages" ref="messages"/>
+		<property name="defaultMessageSender" ref="defaultMessageSender"/>
+		<property name="taskExecutor" ref="taskExecutor"/>
+		<property name="jobPoolManager" ref="jobPoolManager"/>
+		<property name="runtimeDirectory" value="${algorithm.runtime.directory}"/>
+	</bean>
+
+	<bean id="messages" class="pwr.tin.tip.sw.pd.eu.context.Messages">
+		<property name="messageSource">
+			<bean class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+				<property name="basenames">
+					<list>
+						<value>message</value>
+					</list>
+				</property>
+				 <property name="defaultEncoding" value="UTF-8"/>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		<property name="corePoolSize" value="${thread.pool.core.tasks}"/>
+		<property name="maxPoolSize" value="${thread.pool.max.tasks}"/>
+		<property name="queueCapacity" value="${thread.pool.queue.capacity}"/>
+	</bean>
+
+   <!-- <int:channel id="input"/>
+   <int:channel id="senderChannel"/>
+   
+   <bean id="socketListener" class="pwr.tin.tip.sw.pd.eu.socket.SocketListener"/>
+   <bean id="socketProducer" class="pwr.tin.tip.sw.pd.eu.socket.SocketProducer"/>
+
+   <int-ip:tcp-connection-factory id="tcpConsumerConnectionFactory" type="server" port="11111" />
+   
+   <int-ip:tcp-connection-factory id="tcpProducerConnectionFactory" type="client" host="localhost" port="11111"/>
+   
+   <int-ip:tcp-outbound-gateway id="serverGateway" request-channel="serverBytesToStringChannel"
+   								connection-factory="tcpConsumerConnectionFactory"/>
+   
+   <int-ip:tcp-inbound-gateway request-channel=""/> -->
+   
+   <tx:annotation-driven transaction-manager="transactionManager"/>
+</beans>
