@@ -34,6 +34,8 @@ public class MessageBrokerConfig {
 	private @Value("${thread.pool.queue.capacity}") Integer threadPoolQueueCapacity;
 	private @Value("${thread.pool.max.tasks}") Integer threadPoolMaxTasks;
 	
+	private @Value("${msg.selector}") String messageSelector;
+	
 	public @Bean ConnectionFactory amqConnectionFactory() {
 		return new ActiveMQConnectionFactory("failover:(" + esbMsgBrokerUrl + ")?maxReconnectDelay=15000");
 	}
@@ -50,6 +52,7 @@ public class MessageBrokerConfig {
 		messageContainer.setMaxMessagesPerTask(threadPoolMaxTasks + threadPoolQueueCapacity);
 		messageContainer.setDestinationName(esbOutQueue);
 		messageContainer.setMessageListener(messageListener());
+		messageContainer.setMessageSelector(messageSelector);
 		return messageContainer;
 	}
 	
