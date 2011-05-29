@@ -43,6 +43,7 @@ public class DefaultMessageListener {
 		Job job;
 		try {	
 			job = prepareJob(textMessage.getText());
+			job.setCuId(textMessage.getIntProperty("cuId"));
 			jobService.saveStartedJob(job);
 			log.debug(messages.get("default.message.listener.message.received"), job.getId(), job.getInputMessageBody());
 			jobProcessor.launch(job);

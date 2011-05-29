@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pwr.tin.tip.sw.pd.eu.core.container.RootContainer;
 import pwr.tin.tip.sw.pd.eu.db.model.Algorithm;
 import pwr.tin.tip.sw.pd.eu.db.service.IAlgorithmService;
@@ -12,6 +15,8 @@ import pwr.tin.tip.sw.pd.eu.utils.HotDeployUtils;
 
 public class AlgorithmsLoader {
 
+	private final static Logger log = LoggerFactory.getLogger(AlgorithmsLoader.class);
+	
 	private IAlgorithmService algorithmService;
 	private RootContainer rootContainer;
 	private String runtimeDirectory;
@@ -65,16 +70,19 @@ public class AlgorithmsLoader {
 		File[] deployedAlgorithms = runtimeDir.listFiles();
 		
 		List<Algorithm> listOfAlgorithms = new ArrayList<Algorithm>();
-		
-		for (File file : deployedAlgorithms) {
-			File[] packageTree = file.listFiles();
-			for (File fileInPackage : packageTree) {
-				if (fileInPackage.getName().equals("META-INF")) {
-					listOfAlgorithms.add(HotDeployUtils.readMetaInfFromFile(fileInPackage));
+		if (deployedAlgorithms != null) {
+	 		for (File file : deployedAlgorithms) {
+				File[] packageTree = file.listFiles();
+				for (File fileInPackage : packageTree) {
+					if (fileInPackage.getName().equals("META-INF")) {
+						listOfAlgorithms.add(HotDeployUtils.readMetaInfFromFile(fileInPackage));
+					}
 				}
 			}
 		}
-		
+		else {
+			log.warn("Nie znaleziono aplikacji algorytmow w katalogu runtime...");
+		}
 		return listOfAlgorithms;
 	}
 }

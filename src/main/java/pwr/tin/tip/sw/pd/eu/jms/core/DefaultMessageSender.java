@@ -49,8 +49,7 @@ public class DefaultMessageSender {
 	private TextMessage prepareMessage(Job job, Session session) throws JMSException {
 		job.setOutputMessageBody(marshaller.getXmlForOutMessage(job.getOutMessage()));
 		TextMessage textMessage = session.createTextMessage();
-		textMessage.setIntProperty("sessionId", job.getSessionId());
-		textMessage.setIntProperty("algorithmId", job.getAlgorithm().getAlgorithmId());
+		textMessage.setIntProperty("cuId",job.getCuId());
 		textMessage.setText(job.getOutputMessageBody());
 		return textMessage;
 	}

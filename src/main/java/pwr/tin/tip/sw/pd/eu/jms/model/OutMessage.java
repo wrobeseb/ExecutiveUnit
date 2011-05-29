@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import pwr.tin.tip.sw.pd.eu.jms.model.enums.Status;
 import pwr.tin.tip.sw.pd.eu.jms.model.utils.DateAdapter;
 
-@XmlRootElement(name="algorithmOut")
+@XmlRootElement(name="algorithmResponse")
 @XmlType(propOrder={"sessionId", "algorithmId", "status", "warningDesc", "errorDesc", "startDate", "endDate", "time"})
 public class OutMessage {
 	
@@ -28,7 +28,7 @@ public class OutMessage {
 		return sessionId;
 	}
 
-	@XmlElement(name="algorithmId")
+	@XmlElement(name="id")
 	public Integer getAlgorithmId() {
 		return algorithmId;
 	}
@@ -38,12 +38,12 @@ public class OutMessage {
 		return status;
 	}
 	
-	@XmlElement(name="warningDesc", required=false)
+	@XmlElement(name="warningMsg", required=false)
 	public String getWarningDesc() {
 		return warningDesc;
 	}
 	
-	@XmlElement(name="errorDesc", required=false)
+	@XmlElement(name="errorMsg", required=false)
 	public String getErrorDesc() {
 		return errorDesc;
 	}

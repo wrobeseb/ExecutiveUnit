@@ -33,6 +33,7 @@ public class Job extends BaseEntity {
 	private Date inputMessageArrivalDt;
 	private Date outputMessageCreatedDt;
 	private Boolean outputMessageSended = false;
+	private Integer cuId;
 	
 	@Override
 	@Id
@@ -92,7 +93,16 @@ public class Job extends BaseEntity {
 	public OutMessage getOutMessage() {
 		return outMessage;
 	}
-	
+
+	@Transient
+	public Integer getCuId() {
+		return cuId;
+	}
+
+	public void setCuId(Integer cuId) {
+		this.cuId = cuId;
+	}
+
 	public void setInMessage(InMessage inMessage) {
 		this.inMessage = inMessage;
 	}

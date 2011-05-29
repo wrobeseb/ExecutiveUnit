@@ -11,6 +11,7 @@ import pwr.tin.tip.sw.pd.eu.context.Messages;
 import pwr.tin.tip.sw.pd.eu.core.container.RootContainer;
 import pwr.tin.tip.sw.pd.eu.db.model.Job;
 import pwr.tin.tip.sw.pd.eu.jms.core.DefaultMessageSender;
+import pwr.tin.tip.sw.pd.eu.jms.model.enums.Status;
 
 public class JobProcessor {
 
@@ -50,24 +51,32 @@ public class JobProcessor {
 	}
 	
 	public void launch(Job job) {
-		if (!rootContainer.checkIfAlgorithmIsInDeployPhase(job.getAlgorithm().getAlgorithmId())) {
-			
-			rootContainer.putJobIntoSpace(job);
-			rootContainer.putIdIntoInstanceSpace(job.getAlgorithm().getAlgorithmId(), job.getId());
-			log.debug(messages.get("job.processor.executing.job"), job.getId(), job.getAlgorithm().getAlgorithmId());
-			try {
-				taskExecutor.execute(new JobTask(job, defaultMessageSender, rootContainer, runtimeDirectory));
-				log.info("executing");
+		if (job.getAlgorithm() != null) {
+			if (!rootContainer.checkIfAlgorithmIsInDeployPhase(job.getAlgorithm().getAlgorithmId())) {
+				
+				rootContainer.putJobIntoSpace(job);
+				rootContainer.putIdIntoInstanceSpace(job.getAlgorithm().getAlgorithmId(), job.getId());
+				log.debug(messages.get("job.processor.executing.job"), job.getId(), job.getAlgorithm().getAlgorithmId());
+				try {
+					taskExecutor.execute(new JobTask(job, defaultMessageSender, rootContainer, runtimeDirectory));
+					log.info("executing");
+				}
+				catch(RejectedExecutionException reEx) {
+					log.info("queue full");
+					rootContainer.putJobIntoBlockingQueueOverflowJobsSpace(job);
+					jobPoolManager.stopConsumingMessages();
+				}
 			}
-			catch(RejectedExecutionException reEx) {
-				log.info("queue full");
-				rootContainer.putJobIntoBlockingQueueOverflowJobsSpace(job);
-				jobPoolManager.stopConsumingMessages();
+			else {
+				log.info(messages.get("job.processor.putting.job.into.temp.queue"), job.getId(), job.getAlgorithm().getAlgorithmId());
+				rootContainer.putJobIntoTempSpace(job);
 			}
 		}
 		else {
-			log.info(messages.get("job.processor.putting.job.into.temp.queue"), job.getId(), job.getAlgorithm().getAlgorithmId());
-			rootContainer.putJobIntoTempSpace(job);
+			log.error("Brak algorytmu w jednostce wykonawczej dla zadania {}",job.getId());
+			job.getOutMessage().setStatus(Status.ERROR);
+			job.getOutMessage().setErrorDesc("Brak algorytmu w jednostce wykonawczej...");
+			defaultMessageSender.send(job);
 		}
 	}
 	

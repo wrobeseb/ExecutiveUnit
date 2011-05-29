@@ -3,7 +3,7 @@ package pwr.tin.tip.sw.pd.eu.jms.model;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name="algorithmIn")
+@XmlRootElement(name="algorithm")
 public class InMessage {
 
 	private Integer sessionId;
@@ -18,7 +18,7 @@ public class InMessage {
 		return sessionId;
 	}
 	
-	@XmlElement(name="algorithmId")
+	@XmlElement(name="id")
 	public Integer getAlgorithmId() {
 		return algorithmId;
 	}
