@@ -23,13 +23,14 @@ public class UnitDaoImpl extends HibernateDaoSupport implements IUnitDao {
 	public void save(Object obj) {
 		Transaction transaction = getSession().beginTransaction();
 		Unit unit = (Unit)obj;
-		SQLQuery query = getSession().createSQLQuery("INSERT INTO unit (id, id_unit, address_ip, last_update_dt, max_process_no, overload_flg, type) VALUES (nextval ('unit_seq'),?,?,?,?,?,?)");
+		SQLQuery query = getSession().createSQLQuery("INSERT INTO unit (id, id_unit, address_ip, last_update_dt, max_process_no, overload_flg, type, marked) VALUES (nextval ('unit_seq'),?,?,?,?,?,?,?)");
 		query.setInteger(0, unit.getIdUnit());
 		query.setString(1, unit.getAddressIp());
 		query.setDate(2, unit.getLastUpdateDt());
 		query.setInteger(3, unit.getMaxProcessNo());
 		query.setBoolean(4, unit.getOverloadFlg());
 		query.setInteger(5, unit.getType().ordinal());
+		query.setBoolean(6, unit.isMarked());
 		query.executeUpdate();
 		transaction.commit();
 	}

@@ -27,6 +27,7 @@ public class Unit {
 	private String addressIp;
 	private Date lastUpdateDt;
 	private Integer maxProcessNo;
+	private boolean marked;
 	
 	@Id
 	@Column(name="id")
@@ -85,5 +86,13 @@ public class Unit {
 	}
 	public void setMaxProcessNo(Integer maxProcessNo) {
 		this.maxProcessNo = maxProcessNo;
+	}
+	
+	@Column(name="marked")
+	public boolean isMarked() {
+		return marked;
+	}
+	public void setMarked(boolean marked) {
+		this.marked = marked;
 	}
 }

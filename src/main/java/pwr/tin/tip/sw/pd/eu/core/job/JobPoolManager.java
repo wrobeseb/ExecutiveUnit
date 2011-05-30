@@ -9,6 +9,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import pwr.tin.tip.sw.pd.eu.core.container.RootContainer;
 import pwr.tin.tip.sw.pd.eu.db.model.Job;
+import pwr.tin.tip.sw.pd.eu.db.service.IUnitService;
 
 public class JobPoolManager {
 
@@ -18,6 +19,8 @@ public class JobPoolManager {
 	private ThreadPoolTaskExecutor taskExecutor;
 	private JobProcessor jobProcessor;
 	private RootContainer rootContainer;
+	
+	private IUnitService unitService;
 
 	public void setMessageContainer(DefaultMessageListenerContainer messageContainer) {
 		this.messageContainer = messageContainer;
@@ -31,9 +34,13 @@ public class JobPoolManager {
 	public void setRootContainer(RootContainer rootContainer) {
 		this.rootContainer = rootContainer;
 	}
-
+	public void setUnitService(IUnitService unitService) {
+		this.unitService = unitService;
+	}
+	
 	public void stopConsumingMessages() {
 		messageContainer.stop();
+		unitService.setOverload();
 		log.info("stop");
 	}
 	
@@ -48,6 +55,7 @@ public class JobPoolManager {
 			}
 			if (!messageContainer.isRunning()) {
 				messageContainer.start();
+				unitService.setFree();
 				log.info("start");
 			}
 		}

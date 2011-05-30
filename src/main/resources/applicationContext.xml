@@ -90,6 +90,7 @@
 		<property name="taskExecutor" ref="taskExecutor"/>
 		<property name="jobProcessor" ref="jobProcessor"/>
 		<property name="rootContainer" ref="rootContainer"/>
+		<property name="unitService" ref="unitService"/>
 	</bean>
 	
 	<bean id="jobPoolManagerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">

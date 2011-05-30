@@ -1,7 +1,5 @@
 package pwr.tin.tip.sw.pd.eu.db.service.impl;
 
-import java.util.Date;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -33,6 +31,7 @@ public class UnitServiceImpl implements IUnitService {
 
 	@Override
 	@PostConstruct
+	@Transactional(propagation=Propagation.REQUIRES_NEW)
 	public void registerUnit() {
 		Unit unit = new Unit();
 		unit.setIdUnit(unitId);
@@ -41,6 +40,7 @@ public class UnitServiceImpl implements IUnitService {
 		unit.setOverloadFlg(false);
 		unit.setType(UnitType.EU);
 		unit.setLastUpdateDt(DateTime.now());
+		unit.setMarked(false);
 		unitDao.save(unit);
 	}
 
