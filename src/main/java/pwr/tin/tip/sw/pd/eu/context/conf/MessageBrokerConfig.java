@@ -1,6 +1,7 @@
 package pwr.tin.tip.sw.pd.eu.context.conf;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.Session;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,9 @@ public class MessageBrokerConfig {
 		messageContainer.setDestinationName(esbOutQueue);
 		messageContainer.setMessageListener(messageListener());
 		messageContainer.setMessageSelector(messageSelector);
+		messageContainer.setCacheLevelName("CACHE_SESSION");
+		messageContainer.setConcurrentConsumers(20);
+		messageContainer.setSessionAcknowledgeMode(Session.CLIENT_ACKNOWLEDGE);
 		return messageContainer;
 	}
 	
